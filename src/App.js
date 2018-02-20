@@ -4,17 +4,131 @@ import  {Pie} from "react-chartjs";
 import './App.css';
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      debug: true,
+      show_table: false,
+      values: [{label: 'Kindness of strangers', value: 1}]
+    }
+
+    this.handleTableChange = this.handleTableChange.bind(this);
+    this.header = this.header.bind(this);
+    this.handleAccountChange = this.handleAccountChange.bind(this);
+    this.handleBalanceChange = this.handleBalanceChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.showTable = this.showTable.bind(this);
+
+  }
+
+  handleAccountChange(event) {
+    this.setState({acct_name: event.target.value});
+  }
+
+  handleBalanceChange(event) {
+    this.setState({acct_balance: event.target.value});
+  }
+
+  handleSubmit(event) {
+    let acct_name = event.target.elements[0].value;
+    let acct_bal = event.target.elements[1].value;
+
+    if (this.state.debug) {
+      console.log("acct_name: " + String(acct_name));
+      console.log("acct_bal: " + String(acct_bal));
+      console.log("typeof values: " + (typeof this.state.values));
+      console.log("values.toString(): " + this.state.values.toString());
+      console.log("values.length: " + this.state.values.length);
+    }
+
+    try {
+      let el = {label: acct_name, value: acct_bal};
+      if (this.state.debug) {
+        console.log("new el is a " + typeof el);
+        console.log("values is a " + typeof this.state.values);
+        console.log("concat is " + this.state.values.concat(el));
+      }
+      this.setState((prevState, props) => (
+          {
+            values: prevState.values.concat([el])
+          }
+      ));
+    }
+    catch (error) {
+      this.setState({ hasError: true });
+      console.log(error);
+    }
+    this.setState({acct_name: ''});
+    this.setState({acct_balance: ''});
+    event.preventDefault();
+  }
+
+  handleTableChange(event) {
+    console.log(this.state.show_table);
+    this.setState((prevState, props) => ({
+      show_table: !prevState.show_table
+    }));
+  }
+
+  header() {
+    return(<header className="App-header">
+      <img src={logo} className="App-logo" alt="logo" />
+      <h1 className="App-title">Welcome</h1>
+    </header>)
+  }
+
+  showTable = () => {
+    if (this.state.show_table) {
+      return <UnorderedList items={this.state.values} />
+    }
+  }
+
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome</h1>
-        </header>
-        <AccountForm />
-        <NewPieChart />
+        <this.header />
+        <Options
+          show_table={this.state.show_table}
+          handleTableChange={this.handleTableChange}
+        />
+        { this.showTable() }
+
+        <AccountForm
+          handleTableChange={this.handleTableChange}
+          handleAccountChange={this.handleAccountChange}
+          handleSubmit={this.handleSubmit}
+        />
+        <NewPieChart data={this.state.values} />
+
       </div>
     );
+  }
+}
+
+class Options extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+    }
+
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+  }
+
+  render () {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Show Table?
+          <input id="show_table" type="checkbox" value={this.props.show_table} onChange={this.props.handleTableChange} />
+        </label>
+      </form>
+    )
   }
 }
 
@@ -72,16 +186,16 @@ class AccountForm extends Component {
     super(props);
 
     this.state = {
-      debug: true,
+      debug: false,
       acct_name: '',
-      acct_balance: '',
-      values: [{name: 'acct1', bal: 99}]
+      acct_balance: ''
     };
 
     this.handleAccountChange = this.handleAccountChange.bind(this);
     this.handleBalanceChange = this.handleBalanceChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.acctList = this.acctList.bind(this);
+    //this.handleSubmit = this.handleSubmit.bind(this);
+    //this.acctList = this.acctList.bind(this);
+    //this.showForm = this.showForm.bind(this);
   }
 
   componentDidCatch(error, info) {
@@ -100,51 +214,35 @@ class AccountForm extends Component {
     this.setState({acct_balance: event.target.value});
   }
 
-  handleSubmit(event) {
-    let acct_name = event.target.elements[0].value;
-    let acct_bal = event.target.elements[1].value;
-
-    if (this.state.debug) {
-      console.log("acct_name: " + String(acct_name));
-      console.log("acct_bal: " + String(acct_bal));
-      console.log("typeof values: " + (typeof this.state.values));
-      console.log("values.toString(): " + this.state.values.toString());
-      console.log("values.length: " + this.state.values.length);
-    }
-
-    try {
-      let el = {name: acct_name, bal: acct_bal};
-      if (this.state.debug) {
-        console.log("new el is a " + typeof el);
-        console.log("values is a " + typeof this.state.values);
-        console.log("concat is " + this.state.values.concat(el));
-      }
-      this.setState((prevState, props) => (
-          {
-            values: prevState.values.concat([el])
-          }
-      ));
-    }
-    catch (error) {
-      this.setState({ hasError: true });
-      console.log(error);
-    }
-    this.setState({acct_name: ''});
-    this.setState({acct_balance: ''});
-    event.preventDefault();
-  }
 
   acctList = () => {
     let d = <div id="acct-list"></div>
     let list = this.state.values;
     for (var i = 0; i < list.length; i++) {
       //for (var obj_key in list[i]) {
-        d += list[i].name;
-        d += list[i].bal;
+        d += list[i].label;
+        d += list[i].value;
       //}
     }
     console.log(d);
     return d;
+  }
+
+  showForm = () => {
+    var f = (
+    <form onSubmit={this.props.handleSubmit}>
+      <label>
+        Account:
+        <input id="acct_field" type="text" value={this.state.acct_name} onChange={this.handleAccountChange} autoFocus="true" />
+      </label>
+      <label>
+        Balance:
+        <input id="acct_balance" type="number" value={this.state.acct_balance} onChange={this.handleBalanceChange} />
+      </label>
+      <input type="submit" />
+    </form>
+  )
+  return f
   }
 
   render() {
@@ -153,19 +251,7 @@ class AccountForm extends Component {
     }
     return(
       <div className="InputForm">
-      <UnorderedList items={this.state.values} />
-        <form onSubmit={this.handleSubmit}>
-          <label>
-            Account:
-            <input id="acct_field" type="text" value={this.state.acct_name} onChange={this.handleAccountChange} autoFocus="true" />
-          </label>
-          <label>
-            Balance:
-            <input id="acct_balance" type="number" value={this.state.acct_balance} onChange={this.handleBalanceChange} />
-          </label>
-          <input type="submit" />
-        </form>
-        <p> Thing 1 {this.state.acct_name}: {this.state.acct_balance}</p>
+        { this.showForm() }
       </div>
     );
   }
@@ -225,7 +311,7 @@ class NewPieChart extends Component {
   }
 
    myPie = () => {
-     const thisPie = <Pie data={this.state.data} options={this.state.chartOptions} width="600" height="500"/>
+     const thisPie = <Pie data={this.props.data} options={this.state.chartOptions} width="600" height="500"/>
      return thisPie;
    }
 
