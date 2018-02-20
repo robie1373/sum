@@ -10,6 +10,8 @@ class App extends Component {
     this.state = {
       debug: true,
       show_table: false,
+      acct_name: '',
+      acct_bal: '',
       values: [{label: 'Kindness of strangers', value: 1}]
     }
 
@@ -19,7 +21,16 @@ class App extends Component {
     this.handleBalanceChange = this.handleBalanceChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.showTable = this.showTable.bind(this);
+    this.handleClearStorage = this.handleClearStorage.bind(this);
 
+  }
+
+  componentDidMount() {
+    const cachedValues = localStorage.getItem("values");
+    if (cachedValues) {
+      this.setState({values: JSON.parse(cachedValues) });
+      return;
+    }
   }
 
   handleAccountChange(event) {
@@ -27,7 +38,7 @@ class App extends Component {
   }
 
   handleBalanceChange(event) {
-    this.setState({acct_balance: event.target.value});
+    this.setState({acct_bal: event.target.value});
   }
 
   handleSubmit(event) {
@@ -42,25 +53,28 @@ class App extends Component {
       console.log("values.length: " + this.state.values.length);
     }
 
-    try {
-      let el = {label: acct_name, value: acct_bal};
-      if (this.state.debug) {
-        console.log("new el is a " + typeof el);
-        console.log("values is a " + typeof this.state.values);
-        console.log("concat is " + this.state.values.concat(el));
-      }
-      this.setState((prevState, props) => (
+    if ( acct_name.length > 0 && acct_bal.length > 0 ) {
+      try {
+        let el = {label: acct_name, value: acct_bal};
+        if (this.state.debug) {
+          console.log("new el is a " + typeof el);
+          console.log("values is a " + typeof this.state.values);
+          console.log("concat is " + this.state.values.concat(el));
+        }
+        localStorage.setItem('values', JSON.stringify(this.state.values.concat([el])) );
+        this.setState((prevState, props) => (
           {
             values: prevState.values.concat([el])
           }
-      ));
-    }
-    catch (error) {
-      this.setState({ hasError: true });
-      console.log(error);
+        ));
+      }
+      catch (error) {
+        this.setState({ hasError: true });
+        console.log(error);
+      }
     }
     this.setState({acct_name: ''});
-    this.setState({acct_balance: ''});
+    this.setState({acct_bal: ''});
     event.preventDefault();
   }
 
@@ -69,6 +83,14 @@ class App extends Component {
     this.setState((prevState, props) => ({
       show_table: !prevState.show_table
     }));
+  }
+
+  handleClearStorage(event) {
+    let default_data = [{label: 'Kindness of strangers', value: 1}];
+    console.log("clearingStorage")
+    localStorage.setItem('values', JSON.stringify(default_data));
+    this.setState({values: default_data});
+    event.preventDefault();
   }
 
   header() {
@@ -91,13 +113,18 @@ class App extends Component {
         <Options
           show_table={this.state.show_table}
           handleTableChange={this.handleTableChange}
+          handleClearStorage={this.handleClearStorage}
         />
         { this.showTable() }
 
         <AccountForm
           handleTableChange={this.handleTableChange}
           handleAccountChange={this.handleAccountChange}
+          handleBalanceChange={this.handleBalanceChange}
           handleSubmit={this.handleSubmit}
+          handleClearStorage={this.handleClearStorage}
+          acct_name={this.state.acct_name}
+          acct_bal={this.state.acct_bal}
         />
         <NewPieChart data={this.state.values} />
 
@@ -113,19 +140,19 @@ class Options extends Component {
     this.state = {
     }
 
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  handleSubmit(event) {
-    event.preventDefault();
   }
 
   render () {
     return (
-      <form onSubmit={this.handleSubmit}>
+      <form onSubmit={this.props.handleClearStorage}>
         <label>
           Show Table?
-          <input id="show_table" type="checkbox" value={this.props.show_table} onChange={this.props.handleTableChange} />
+          <input id="show_table" type="checkbox" value={this.props.show_table}
+            onChange={this.props.handleTableChange} />
+        </label>
+        <label>
+          Clear Table?
+          <input id="clear_table" type="submit" value="Clear localStorage"/>
         </label>
       </form>
     )
@@ -168,8 +195,10 @@ class UnorderedList extends Component {
           console.log(key);
         }
         if (typeof this.props.items[i][key] !== 'function') {
-          const li_key = i.toString() + key;
-          l.push((<ListItem key={li_key} column_name={key} value={this.props.items[i][key]} />));
+          if (['value', 'label'].includes(key)) {
+            const li_key = i.toString() + key;
+            l.push((<ListItem key={li_key} column_name={key} value={this.props.items[i][key]} />));
+        }
         }
       }
     }
@@ -187,15 +216,8 @@ class AccountForm extends Component {
 
     this.state = {
       debug: false,
-      acct_name: '',
-      acct_balance: ''
     };
 
-    this.handleAccountChange = this.handleAccountChange.bind(this);
-    this.handleBalanceChange = this.handleBalanceChange.bind(this);
-    //this.handleSubmit = this.handleSubmit.bind(this);
-    //this.acctList = this.acctList.bind(this);
-    //this.showForm = this.showForm.bind(this);
   }
 
   componentDidCatch(error, info) {
@@ -206,38 +228,16 @@ class AccountForm extends Component {
     console.log(info);
   }
 
-  handleAccountChange(event) {
-    this.setState({acct_name: event.target.value});
-  }
-
-  handleBalanceChange(event) {
-    this.setState({acct_balance: event.target.value});
-  }
-
-
-  acctList = () => {
-    let d = <div id="acct-list"></div>
-    let list = this.state.values;
-    for (var i = 0; i < list.length; i++) {
-      //for (var obj_key in list[i]) {
-        d += list[i].label;
-        d += list[i].value;
-      //}
-    }
-    console.log(d);
-    return d;
-  }
-
   showForm = () => {
     var f = (
     <form onSubmit={this.props.handleSubmit}>
       <label>
         Account:
-        <input id="acct_field" type="text" value={this.state.acct_name} onChange={this.handleAccountChange} autoFocus="true" />
+        <input id="acct_name" type="text" value={this.props.acct_name} onChange={this.props.handleAccountChange} autoFocus="true" />
       </label>
       <label>
         Balance:
-        <input id="acct_balance" type="number" value={this.state.acct_balance} onChange={this.handleBalanceChange} />
+        <input id="acct_bal" type="number" value={this.props.acct_bal} onChange={this.props.handleBalanceChange} />
       </label>
       <input type="submit" />
     </form>
@@ -262,12 +262,6 @@ class NewPieChart extends Component {
     super(props);
 
     this.state = {
-      data: [
-        { value: 100, label: "Acct1" },
-        { value: 120, label: "Acct2" },
-        { value: 135, label: "Acct3" },
-        { value: 50, label: "Acct4" }
-      ],
       chartOptions: {
         legend: {
           display: true,
