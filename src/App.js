@@ -9,7 +9,7 @@ class App extends Component {
 
     this.state = {
       debug: true,
-      show_table: false,
+      show_table: true,
       acct_name: '',
       acct_bal: '',
       values: [{label: 'Kindness of strangers', value: 1}]
@@ -126,10 +126,36 @@ class App extends Component {
           acct_name={this.state.acct_name}
           acct_bal={this.state.acct_bal}
         />
-        <NewPieChart data={this.state.values} />
+        <SumTotal values={this.state.values} />
+        <PieChart data={this.state.values} />
 
       </div>
     );
+  }
+}
+
+class SumTotal extends Component{
+  constructor(props) {
+    super(props);
+
+    this.sumTotal = this.sumTotal.bind(this);
+  }
+
+  sumTotal = () => {
+    var length = this.props.values.length;
+    var accumulator = 0;
+    for (var i=0; i<length; i++){
+      accumulator += Number(this.props.values[i].value)
+    }
+    return accumulator.toLocaleString('en');
+  }
+
+  render () {
+    return (
+      <div className="component-boundary" id="sumTotal">
+        <h1>${this.sumTotal()}</h1>
+      </div>
+    )
   }
 }
 
@@ -144,17 +170,19 @@ class Options extends Component {
 
   render () {
     return (
-      <form onSubmit={this.props.handleClearStorage}>
-        <label>
-          Show Table?
-          <input id="show_table" type="checkbox" value={this.props.show_table}
-            onChange={this.props.handleTableChange} />
-        </label>
-        <label>
-          Clear Table?
-          <input id="clear_table" type="submit" value="Clear localStorage"/>
-        </label>
-      </form>
+      <div className="component-boundary" id="options-div">
+        <form onSubmit={this.props.handleClearStorage}>
+          <label>
+            Show Table?
+            <input id="show_table" type="checkbox" value={this.props.show_table}
+              onChange={this.props.handleTableChange} />
+          </label>
+          <label>
+            Clear Table?
+            <input id="clear_table" type="submit" value="Clear localStorage"/>
+          </label>
+        </form>
+      </div>
     )
   }
 }
@@ -162,10 +190,15 @@ class Options extends Component {
 class ListItem extends Component {
   constructor(props) {
     super(props);
+
+    this.state = {debug: true}
   }
 
   render () {
-    return (<li key={ this.props.column_number }>{ this.props.column_name } : { this.props.value}</li>);
+    if (this.state.debug) {
+      console.log(this.props.acct_name + " " + this.props.value);
+    }
+    return (<li key={ this.props.column_number }>{ this.props.acct_name } : ${ Number(this.props.value).toLocaleString('en')}</li>);
   }
 }
 
@@ -174,7 +207,7 @@ class UnorderedList extends Component {
     super(props);
 
     this.state = {
-      debug: false
+      debug: true
     };
     this.listItems = this.listItems.bind(this);
   }
@@ -190,23 +223,27 @@ class UnorderedList extends Component {
         console.log("LI2")
         console.log(this.props.items[i]);
       }
-      for (var key in this.props.items[i]) {
+      //for (var key in this.props.items[i]) {
         if (this.state.debug) {
-          console.log(key);
+          //console.log(key);
         }
-        if (typeof this.props.items[i][key] !== 'function') {
-          if (['value', 'label'].includes(key)) {
-            const li_key = i.toString() + key;
-            l.push((<ListItem key={li_key} column_name={key} value={this.props.items[i][key]} />));
-        }
-        }
-      }
+        //if (typeof this.props.items[i][key] !== 'function') {
+          //if (['value', 'label'].includes(key)) {
+            const item = this.props.items[i];
+            const li_key = i.toString(); //+ key;
+            console.log(item['label']);
+            l.push((<ListItem key={li_key} acct_name={item.label} value={item.value} />));
+        //}
+        //}
+      //}
     }
     return l;
   }
 
   render () {
-    return ( <ul> {this.listItems()} </ul>);
+    return ( <div className="component-boundary" id="table">
+        <ul> {this.listItems()} </ul>
+      </div>);
   }
 }
 
@@ -250,14 +287,14 @@ class AccountForm extends Component {
       return (<h1>Something went wrong</h1>);
     }
     return(
-      <div className="InputForm">
+      <div className="component-boundary" id="InputForm">
         { this.showForm() }
       </div>
     );
   }
 }
 
-class NewPieChart extends Component {
+class PieChart extends Component {
   constructor(props) {
     super(props);
 
@@ -311,7 +348,7 @@ class NewPieChart extends Component {
 
   render () {
     return (
-      <div>
+      <div className="component-boundary" id="PieChart">
         { this.myPie() }
       </div>
     );

@@ -22,6 +22,18 @@
   font-size: large;
 }
 
+.component-boundary {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+input {
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-left: 1em;
+  margin-right: 4em;
+}
+
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
