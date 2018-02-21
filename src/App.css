@@ -34,6 +34,17 @@ input {
   margin-right: 4em;
 }
 
+ul {
+    list-style-type: none;
+}
+
+#options-div {
+  background-color: rgba(21, 21, 25, .33);
+}
+
+#table {
+  background-color: rgba(21, 21, 25, .11);
+}
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

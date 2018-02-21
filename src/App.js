@@ -169,14 +169,12 @@ class Options extends Component {
   }
 
   render () {
+    var table_text = this.props.show_table ? "Hide table" : "Show table";
     return (
       <div className="component-boundary" id="options-div">
         <form onSubmit={this.props.handleClearStorage}>
-          <label>
-            Show Table?
-            <input id="show_table" type="checkbox" value={this.props.show_table}
-              onChange={this.props.handleTableChange} />
-          </label>
+          <input id="show_table" type="submit" value={table_text}
+              onClick={this.props.handleTableChange} />
           <label>
             Clear Table?
             <input id="clear_table" type="submit" value="Clear localStorage"/>
@@ -276,7 +274,7 @@ class AccountForm extends Component {
         Balance:
         <input id="acct_bal" type="number" value={this.props.acct_bal} onChange={this.props.handleBalanceChange} />
       </label>
-      <input type="submit" />
+      <input type="submit" value="Add to chart" />
     </form>
   )
   return f
