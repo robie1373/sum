@@ -251,6 +251,7 @@ class AccountForm extends Component {
 
     this.state = {
       debug: false,
+      hasError: false
     };
 
   }
